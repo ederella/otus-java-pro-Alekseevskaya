@@ -1,2 +1,3 @@
 rootProject.name = 'otus-java-pro-Alekseevskaya'
+include 'hw01-gradle'
 
