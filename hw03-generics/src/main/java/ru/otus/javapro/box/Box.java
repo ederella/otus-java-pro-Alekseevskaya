@@ -13,11 +13,12 @@ public class Box<T extends Fruit>{
         fruits = new ArrayList<>();
     }
 
-    public void put(T fruit) throws Exception {
-        if(fruits.size()< capacity)
+    public boolean put(T fruit){
+        if(fruits.size()< capacity) {
             fruits.add(fruit);
-        else
-            throw new Exception("Box is full");
+            return true;
+        }
+        return false;
     }
 
     public double weight() {
@@ -34,12 +35,13 @@ public class Box<T extends Fruit>{
     }
 
     public void replaceFruitsTo(Box<T> otherBox) throws Exception {
-        if(otherBox!=null){
-            if(otherBox.capacity - otherBox.fruits.size() >= this.fruits.size()) {
-                otherBox.fruits.addAll(this.fruits);
-                this.fruits = new ArrayList<>();
-            }
-            else throw new Exception("Target box can't hold all fruits from source box");
+        if(otherBox==null || otherBox == this){
+            return;
         }
+        if(otherBox.capacity - otherBox.fruits.size() < this.fruits.size()) {
+            throw new Exception("Target box can't hold all fruits from source box");
+        }
+        otherBox.fruits.addAll(this.fruits);
+        this.fruits.clear();
     }
 }

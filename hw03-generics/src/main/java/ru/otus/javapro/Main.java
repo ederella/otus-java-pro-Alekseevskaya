@@ -34,6 +34,7 @@ public class Main {
         System.out.println("A box with oranges comparing with a box with apples: "+ orangeBox.compare(appleBox));
 
         Box<Apple> emptyAppleBox = new Box<>();
+        System.out.println("Replacing apples from the box with apples to new empty box");
         appleBox.replaceFruitsTo(emptyAppleBox);
         System.out.println("A box with apples weighs: "+ appleBox.weight());
         System.out.println("A new box with apples weighs: "+ emptyAppleBox.weight());
