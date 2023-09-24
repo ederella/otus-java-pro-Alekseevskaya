@@ -15,7 +15,6 @@ public class AnotherTestCLass {
 
     @Before
     void beforePrint() {
-
         System.out.println("Start another");
     }
 
