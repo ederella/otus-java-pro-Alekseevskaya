@@ -5,15 +5,17 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 public class TestRunner {
-    private ArrayList <Method> methodsBefore;
-    private ArrayList <Method> methodsTest;
-    private ArrayList<Method> methodsAfter;
+    private final ArrayList <Method> methodsBefore;
+    private final ArrayList <Method> methodsTest;
+    private final ArrayList<Method> methodsAfter;
+    private final ArrayList<Method> methodsRepeated;
 
-    public TestRunner(Class<?> cls) throws Exception {
+    public TestRunner(Class<?> cls) {
 
         methodsBefore = new ArrayList<>();
         methodsTest = new ArrayList<>();
         methodsAfter = new ArrayList<>();
+        methodsRepeated = new ArrayList<>();
 
         Method[] methods = cls.getDeclaredMethods();
 
@@ -33,12 +35,16 @@ public class TestRunner {
                 methodAnnotationCount++;
             }
             if (methodAnnotationCount > 1) {
-                throw new Exception("Annotations should not be repeated");
+                methodsRepeated.add(method);
             }
         }
     }
     public void run() throws Exception {
         int successCount = 0;
+        if(!methodsRepeated.isEmpty()){
+            printIncorrectAnnotations();
+            return;
+        }
         for(Method method: methodsTest){
             method.setAccessible(true);
             Object obj = method.getDeclaringClass().getDeclaredConstructor().newInstance();
@@ -50,17 +56,27 @@ public class TestRunner {
                 successCount++;
 
             } catch (Throwable e) {
-                e.printStackTrace();
+                System.out.println(e.getMessage());
             }
 
             runAllAfter(obj);
         }
+        printReport(successCount);
+    }
+
+    private void printReport(int successCount) {
         System.out.println("---------REPORT--------");
         System.out.println("TOTAL: "+ methodsTest.size());
         System.out.println("SUCCESS: "+ successCount);
         System.out.println("----------------------");
     }
-
+    private void printIncorrectAnnotations(){
+        System.out.println("---------REPORT--------");
+        for (Method method: methodsRepeated) {
+            System.out.println("Method "+ method.getName() + " has repeated annotations - test was skipped");
+        }
+        System.out.println("----------------------");
+    }
     private static String getStringName(Method method) {
         return method.getDeclaringClass().getName() + '.' + method.getName();
     }
