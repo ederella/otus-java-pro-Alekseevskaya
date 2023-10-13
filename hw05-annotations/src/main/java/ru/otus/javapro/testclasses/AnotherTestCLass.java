@@ -21,7 +21,7 @@ public class AnotherTestCLass {
     @Test
     @After
     void testOk() {
-         System.out.println(someint / 10);
+        System.out.println(someint / 10);
     }
 
     @Test

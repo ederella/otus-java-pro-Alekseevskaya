@@ -2,23 +2,24 @@ package ru.otus.javapro.annotations;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class TestRunner {
     public static void run(Class<?> cls) throws Exception {
-        MethodArrays ma = new MethodArrays(cls.getDeclaredMethods());
+        HashMap<String, ArrayList<Method>> methods = divideAnnotedMethods(cls.getDeclaredMethods());
 
-        if (!ma.methodsRepeated.isEmpty()) {
-            printIncorrectAnnotations(ma.methodsRepeated);
+        if (!methods.get("Repeated").isEmpty()) {
+            printIncorrectAnnotations(methods.get("Repeated"));
             return;
         }
 
         int successCount = 0;
-        for (Method method : ma.methodsTest) {
+        for (Method method : methods.get("Test")) {
             method.setAccessible(true);
             Object obj = method.getDeclaringClass().getDeclaredConstructor().newInstance();
 
             try {
-                for (Method methodBefore : ma.methodsBefore) {
+                for (Method methodBefore : methods.get("Before")) {
                     methodBefore.setAccessible(true);
                     System.out.println("call " + getStringName(methodBefore));
                     methodBefore.invoke(obj);
@@ -31,13 +32,43 @@ public class TestRunner {
                 System.out.println(e.getMessage());
             }
 
-            for (Method methodAfter : ma.methodsAfter) {
+            for (Method methodAfter : methods.get("After")) {
                 methodAfter.setAccessible(true);
                 System.out.println("call " + getStringName(methodAfter));
                 methodAfter.invoke(obj);
             }
         }
-        printReport(successCount, ma.methodsTest);
+        printReport(successCount, methods.get("Test"));
+    }
+
+    private static HashMap<String, ArrayList<Method>> divideAnnotedMethods(Method[] declaredMethods) {
+        HashMap<String, ArrayList<Method>> dividedMethods = new HashMap<>();
+        dividedMethods.put("Test", new ArrayList<>());
+        dividedMethods.put("Before", new ArrayList<>());
+        dividedMethods.put("After", new ArrayList<>());
+        dividedMethods.put("Repeated", new ArrayList<>());
+
+        for (Method method : declaredMethods) {
+
+            int methodAnnotationCount = 0;
+            if (method.getAnnotation(Test.class) != null) {
+                dividedMethods.get("Test").add(method);
+                methodAnnotationCount++;
+            }
+            if (method.getAnnotation(Before.class) != null) {
+                dividedMethods.get("Before").add(method);
+                methodAnnotationCount++;
+            }
+            if (method.getAnnotation(After.class) != null) {
+                dividedMethods.get("After").add(method);
+                methodAnnotationCount++;
+            }
+            if (methodAnnotationCount > 1) {
+                dividedMethods.get("Repeated").add(method);
+            }
+        }
+
+        return dividedMethods;
     }
 
     private static void printIncorrectAnnotations(ArrayList<Method> methodsRepeated) {
