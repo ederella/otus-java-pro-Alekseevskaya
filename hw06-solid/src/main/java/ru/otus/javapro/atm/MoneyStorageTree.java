@@ -1,17 +1,18 @@
 package ru.otus.javapro.atm;
 
 import ru.otus.javapro.atm.banknote.Banknote;
+import ru.otus.javapro.atm.banknote.Nominal;
 
 import java.util.*;
 
-public class MoneyStorageTree implements MoneyStorage {
+public class MoneyStorageTree<E extends Banknote> implements MoneyStorage {
 
-    private final TreeMap<Banknote, Integer> moneyBoxes;
+    private final TreeMap<Nominal, LinkedList<E>> moneyBoxes;
 
-    public MoneyStorageTree() {
+    public MoneyStorageTree(Nominal[] nominals) {
         moneyBoxes = new TreeMap<>();
-        for (Banknote banknote : Banknote.values()) {
-            moneyBoxes.put(banknote, 0);
+        for (Nominal nominal : nominals) {
+            moneyBoxes.put(nominal, new LinkedList<>());
         }
     }
 
@@ -20,9 +21,9 @@ public class MoneyStorageTree implements MoneyStorage {
         int balance = 0;
         for (Banknote banknote : packOfMoney) {
             balance += banknote.getValue();
-            for (Map.Entry<Banknote, Integer> moneyBox : moneyBoxes.entrySet()) {
-                if (moneyBox.getKey().equals(banknote)) {
-                    moneyBox.setValue(moneyBox.getValue() + 1);
+            for (Map.Entry<Nominal, LinkedList<E>> moneyBox : moneyBoxes.entrySet()) {
+                if (moneyBox.getKey().equals(banknote.getNominal())) {
+                    moneyBox.getValue().add((E) banknote);
                 }
             }
         }
@@ -32,26 +33,26 @@ public class MoneyStorageTree implements MoneyStorage {
     @Override
     public ArrayList<Banknote> get(int amount) throws Exception {
         ArrayList<Banknote> returnList = new ArrayList<>();
-        NavigableSet<Banknote> banknotes = moneyBoxes.descendingKeySet();
+        NavigableSet<Nominal> banknotes = moneyBoxes.descendingKeySet();
         int amountTemp = amount;
         int attemptCounter = 0;
-        for (Iterator<Banknote> iter = banknotes.iterator(); iter.hasNext(); ) {
-            Banknote key = iter.next();
-            int curBalance = moneyBoxes.get(key) * key.getValue();
+        for (Iterator<Nominal> iter = banknotes.iterator(); iter.hasNext(); ) {
+            Nominal key = iter.next();
+            int curBalance = moneyBoxes.get(key).size() * key.getValue();
             int numberOfBanknotesToGet = Math.min(curBalance, amountTemp) / key.getValue();
 
             if (numberOfBanknotesToGet > 0) {
                 amountTemp = amountTemp - numberOfBanknotesToGet * key.getValue();
                 for (int i = 0; i < numberOfBanknotesToGet; i++) {
-                    returnList.add(key);
+                    returnList.add(moneyBoxes.get(key).pop());
                 }
             }
             if (amountTemp == 0) {
-                returnList.forEach((b) -> moneyBoxes.put(b, moneyBoxes.get(b) - 1));
                 return returnList;
             }
 
             if (!iter.hasNext()) {
+                put(returnList);
                 returnList.clear();
                 amountTemp = amount;
                 attemptCounter++;
@@ -69,10 +70,10 @@ public class MoneyStorageTree implements MoneyStorage {
 
     @Override
     public int getMinimalMultiple() {
-        for (Banknote banknote :
+        for (Nominal nominal :
                 moneyBoxes.navigableKeySet()) {
-            if (moneyBoxes.get(banknote) > 0)
-                return banknote.getValue();
+            if (!moneyBoxes.get(nominal).isEmpty())
+                return nominal.getValue();
         }
         return 0;
     }

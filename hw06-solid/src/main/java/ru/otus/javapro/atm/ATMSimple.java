@@ -1,19 +1,29 @@
 package ru.otus.javapro.atm;
 
 import lombok.Getter;
+import lombok.extern.log4j.Log4j2;
 import ru.otus.javapro.atm.banknote.Banknote;
+import ru.otus.javapro.atm.banknote.BanknoteMDL;
+import ru.otus.javapro.atm.banknote.BanknoteRUB;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Log4j2
 public class ATMSimple implements ATM {
-    private final MoneyStorage moneyBoxes;
 
+    private final MoneyStorage moneyBoxes;
     @Getter
     private int balance = 0;
 
-    public ATMSimple() {
-        moneyBoxes = new MoneyStorageTree();
+    public ATMSimple(String currency) throws Exception {
+        if (currency.equalsIgnoreCase("RUB"))
+            moneyBoxes = new MoneyStorageTree<BanknoteRUB>(BanknoteRUB.getNominals());
+        else if (currency.equalsIgnoreCase("MDL"))
+            moneyBoxes = new MoneyStorageTree<BanknoteMDL>(BanknoteMDL.getNominals());
+        else {
+            throw new Exception("Currency is not supported");
+        }
     }
 
     public void putMoney(List<Banknote> packOfMoney) {
@@ -22,14 +32,14 @@ public class ATMSimple implements ATM {
 
     public ArrayList<Banknote> getMoney(int amount) {
         try {
-            System.out.println("Attempt to get " + amount);
+            log.info("Attempt to get " + amount);
             check(amount);
             ArrayList<Banknote> money = moneyBoxes.get(amount);
             balance -= amount;
-            System.out.println("Success");
+            log.info("Success");
             return money;
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            log.error(e.getMessage());
             return new ArrayList<>();
         }
     }
