@@ -7,4 +7,5 @@ include 'hw05-annotation-processor:hw05-annotation-processor-test'
 findProject(':hw05-annotation-processor:hw05-annotation-processor-test')?.name = 'hw05-annotation-processor-test'
 include 'hw05-annotation-processor-test'
 include 'hw06-solid'
+include 'hw07-patterns'
 
