@@ -1,7 +1,7 @@
 package ru.otus.handler;
 
-import ru.otus.model.Message;
 import ru.otus.listener.Listener;
+import ru.otus.model.Message;
 import ru.otus.processor.Processor;
 
 import java.util.ArrayList;
@@ -21,7 +21,7 @@ public class ComplexProcessor implements Handler {
 
     @Override
     public Message handle(Message msg) {
-        Message newMsg = msg;
+        Message newMsg = msg.toBuilder().build();
         for (Processor pros : processors) {
             try {
                 newMsg = pros.process(newMsg);
